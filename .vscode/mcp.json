@@ -1,0 +1,40 @@
+{
+  "servers": {
+    "shadcn": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/shadcn-mcp@latest"]
+    },
+    "supabase": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "supabase-mcp-server@latest"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${input:supabase_access_token}",
+        "SUPABASE_PROJECT_ID": "aezahmzfhugaxpfhqumn"
+      }
+    },
+    "vercel": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "vercel-mcp@latest"],
+      "env": {
+        "VERCEL_API_TOKEN": "${input:vercel_api_token}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "supabase_access_token",
+      "type": "promptString",
+      "description": "Supabase Access Token",
+      "password": true
+    },
+    {
+      "id": "vercel_api_token",
+      "type": "promptString",
+      "description": "Vercel API Token",
+      "password": true
+    }
+  ]
+}
