@@ -1,9 +1,8 @@
 {
   "servers": {
     "shadcn": {
-      "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/shadcn-mcp@latest"]
+      "args": ["shadcn@latest", "mcp"]
     },
     "supabase": {
       "type": "stdio",
@@ -21,6 +20,13 @@
       "env": {
         "VERCEL_API_TOKEN": "${input:vercel_api_token}"
       }
+    },
+    "unipile": {
+      "type": "http",
+      "url": "https://developer.unipile.com/mcp",
+      "headers": {
+        "X-API-KEY": "${input:unipile_api_key}"
+      }
     }
   },
   "inputs": [
@@ -34,6 +40,12 @@
       "id": "vercel_api_token",
       "type": "promptString",
       "description": "Vercel API Token",
+      "password": true
+    },
+    {
+      "id": "unipile_api_key",
+      "type": "promptString",
+      "description": "Unipile API Key",
       "password": true
     }
   ]

@@ -1,21 +1,37 @@
 # Project Guidelines — Rainmaker
 
-Unified Task Management + CRM + ERP platform for SMEs. See [PRD/rainmaker_prd.md](../PRD/rainmaker_prd.md) for full requirements.
+Unified Task Management + CRM + ERP platform for SMEs.
+- Full requirements: [PRD/rainmaker_prd.md](../PRD/rainmaker_prd.md)
+- **Build order**: [Phase.md](../Phase.md) — 5-phase plan. Currently on **Phase 0 (Auth/RBAC/App Shell)**.
 
-## Tech Stack
+## Current Scaffold State
 
-- **Framework**: Next.js 14+ (App Router, Server Actions, Route Handlers)
-- **Language**: TypeScript (strict mode)
-- **UI**: shadcn/ui + Radix UI + Tailwind CSS
-- **State**: Zustand (client) + TanStack Query (server)
+| Item | Status |
+|------|--------|
+| Next.js 16 + TypeScript + Tailwind v4 + shadcn/ui | ✅ Done |
+| Supabase client/server helpers + middleware | ✅ Done |
+| DB migration 0001 (profiles + subscriptions) | ✅ Done |
+| Route groups, pages, modules | ❌ Not started |
+| Test runner (Vitest/Playwright) | ❌ Not configured |
+
+**Next step**: Phase 0 — run migration `0002_auth_rbac.sql`, build auth pages + app shell.
+
+## Tech Stack (Actual Versions)
+
+- **Framework**: Next.js **16** (App Router, Turbopack, Server Actions, Route Handlers)
+- **Language**: TypeScript **5** (strict mode)
+- **UI**: shadcn/ui + Radix UI + **Tailwind CSS v4**
+- **State**: **Zustand v5** (client) + **TanStack Query v5** (server)
+- **Forms**: React Hook Form + **Zod v4**
 - **Database**: Supabase (PostgreSQL 15+) with Row Level Security
-- **Auth**: Supabase Auth (GoTrue) — email/password, OAuth, 2FA
+- **Auth**: Supabase Auth — `@supabase/ssr` for server/middleware, email/password, OAuth, 2FA
 - **Real-time**: Supabase Realtime (WebSocket subscriptions)
 - **Storage**: Supabase Storage (S3-compatible)
 - **Edge Functions**: Supabase Edge Functions (Deno)
-- **Cache**: Upstash Redis (serverless)
+- **Cache**: Upstash Redis (`@upstash/ratelimit` + `@upstash/redis`)
 - **Email**: Resend
-- **Charts**: Recharts or Tremor
+- **Payments**: Stripe
+- **Charts**: Recharts
 - **Deploy**: Vercel + Supabase
 
 ## Architecture
@@ -46,25 +62,25 @@ RLS on every table scoped by `organisation_id`. Never query without org context.
 # Install
 pnpm install
 
-# Dev
+# Dev server (Turbopack)
 pnpm dev
 
-# Type check
-pnpm tsc --noEmit
+# Production build
+pnpm build
+
+# Type check (no emit)
+npx tsc --noEmit
 
 # Lint
 pnpm lint
 
-# Test (unit + integration)
-pnpm test          # Vitest
-
-# E2E
-pnpm test:e2e      # Playwright
-
 # Database migrations
-npx supabase db push
-npx supabase db diff
+npx supabase db push        # push local migrations to remote
+npx supabase db diff        # generate migration from schema changes
 ```
+
+> **Note**: Vitest and Playwright are **not yet installed**. Add them before writing tests:
+> `pnpm add -D vitest @vitejs/plugin-react playwright`
 
 ## Conventions
 
@@ -115,6 +131,12 @@ src/
 - Responsive: desktop (full sidebar), tablet (collapsible sidebar), mobile (bottom nav).
 - WCAG 2.1 AA: keyboard navigation, screen reader support, contrast ratios.
 - Optimistic UI updates for drag-and-drop (Kanban boards, pipeline views).
+- **Design system rules**: `.github/instructions/Design-MD.instructions.md` is auto-applied to all `*.tsx`, `*.jsx`, `*.css`, and files under `components/` or `app/`. Read it before building any UI.
+- **Colour palette**: every colour used must exist in `.github/instructions/colour-palette.md`. No new hex values — ever.
+- **Font**: Satoshi (`@fontsource/satoshi`). Never substitute another typeface.
+- **No shadows**: elevation uses luminosity steps in dark mode; `0.5px border-card` in light mode.
+- **Rounded full on buttons**, `rounded-xl` on cards/inputs.
+- **UI Skill**: `.github/skills/ui/SKILL.md` contains priority-ordered design rules — load it when building any UI.
 
 ### Events
 
@@ -136,4 +158,10 @@ When adding a new domain action that affects other modules, always:
 - **Unipile** powers the Universal Inbox (WhatsApp, Email, LinkedIn, etc.) — all messaging goes through their API.
 - **No self-hosted infra** — Vercel + Supabase only.
 - **Solo developer** — keep abstractions minimal; avoid premature optimisation.
-- **Phased delivery** — see PRD §10 for the 5-phase, 30-week plan. Phase 1 = Task Management foundation.
+- **Phased delivery** — see [Phase.md](../Phase.md) for the 5-phase plan. Phase 0 = Auth/RBAC/Shell (current).
+- **`@supabase/ssr`** is the canonical Supabase auth helper — do not use `@supabase/auth-helpers-nextjs` for new code.
+- **Server Actions** for all mutations; Route Handlers only for webhooks and external API calls.
+- **Middleware** (`src/middleware.ts`) already refreshes sessions and protects `/dashboard`. Extend it as route groups are added.
+- **Zod v4 API**: use `z.string().min()` etc. — Zod v4 changed `z.object().merge()` and error APIs; check docs if unsure.
+- **Zustand v5**: `create` API is unchanged but `immer` middleware import path changed — use `zustand/middleware/immer`.
+- **TanStack Query v5**: `useQuery` requires `{ queryKey, queryFn }` object syntax (no positional args).
